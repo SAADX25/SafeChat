@@ -1,0 +1,15 @@
+[
+  {
+    "_id": "8aac66de-2ff3-4fba-bbdf-def01475e0ba",
+    "createdAt": "2026-01-20T16:29:01.173Z",
+    "name": "general",
+    "type": "text"
+  },
+  {
+    "_id": "fb60ea64-76ea-4fba-9e2e-b81f4d9890ed",
+    "createdAt": "2026-01-20T17:24:53.993Z",
+    "name": "GAMER",
+    "type": "text",
+    "createdBy": "6705bbb9-9caa-407a-a262-67f481ce63c7"
+  }
+]
