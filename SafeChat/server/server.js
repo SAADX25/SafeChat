@@ -183,6 +183,23 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('typing', ({ channelId }) => {
+    if (socket.user && channelId) {
+      // Check if user is actually in the room
+      if (socket.rooms.has(channelId)) {
+         socket.to(channelId).emit('user_typing', { username: socket.user.username, channelId });
+      }
+    }
+  });
+
+  socket.on('stop_typing', ({ channelId }) => {
+    if (socket.user && channelId) {
+       if (socket.rooms.has(channelId)) {
+        socket.to(channelId).emit('user_stop_typing', { username: socket.user.username, channelId });
+       }
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });

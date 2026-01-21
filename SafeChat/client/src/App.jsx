@@ -424,6 +424,8 @@ const ChatArea = ({ user, socket, activeChannel }) => {
   const [showEmoji, setShowEmoji] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [typingUsers, setTypingUsers] = useState(new Set());
+  const typingTimeoutRef = useRef(null);
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -431,6 +433,8 @@ const ChatArea = ({ user, socket, activeChannel }) => {
 
   useEffect(() => {
     if (!activeChannel) return;
+
+    setTypingUsers(new Set()); // Reset typing users on channel switch
 
     const loadMessages = async () => {
       try {
@@ -455,8 +459,27 @@ const ChatArea = ({ user, socket, activeChannel }) => {
       setMessages(prev => prev.filter(m => m._id !== msgId));
     };
 
+    const handleUserTyping = ({ username, channelId }) => {
+      if (channelId === activeChannel?._id && username !== user.username) {
+        setTypingUsers(prev => new Set(prev).add(username));
+        setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      }
+    };
+
+    const handleUserStopTyping = ({ username, channelId }) => {
+      if (channelId === activeChannel?._id) {
+        setTypingUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(username);
+          return newSet;
+        });
+      }
+    };
+
     socket.on('receive_message', handleReceiveMessage);
     socket.on('message_deleted', handleMessageDeleted);
+    socket.on('user_typing', handleUserTyping);
+    socket.on('user_stop_typing', handleUserStopTyping);
     socket.on('system_message', (msg) => {
       setMessages(prev => [...prev, { ...msg, _id: Date.now(), type: 'system' }]);
     });
@@ -464,14 +487,33 @@ const ChatArea = ({ user, socket, activeChannel }) => {
     return () => {
       socket.off('receive_message', handleReceiveMessage);
       socket.off('message_deleted', handleMessageDeleted);
+      socket.off('user_typing', handleUserTyping);
+      socket.off('user_stop_typing', handleUserStopTyping);
       socket.off('system_message');
     };
-  }, [socket, activeChannel]);
+  }, [socket, activeChannel, user.username]);
+
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+
+    if (activeChannel) {
+      socket.emit('typing', { channelId: activeChannel._id });
+
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit('stop_typing', { channelId: activeChannel._id });
+      }, 2000);
+    }
+  };
 
   const sendMessage = (e) => {
     e.preventDefault();
     if (!input.trim() || !activeChannel) return;
     
+    socket.emit('stop_typing', { channelId: activeChannel._id });
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
     socket.emit('send_message', { 
       text: input,
       channelId: activeChannel._id 
@@ -678,6 +720,22 @@ const ChatArea = ({ user, socket, activeChannel }) => {
         <div ref={scrollRef} />
       </div>
 
+      {/* Typing Indicator */}
+      {typingUsers.size > 0 && (
+        <div className="absolute bottom-24 left-6 z-20">
+           <div className="flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 text-xs text-neon-blue animate-pulse">
+             <div className="flex gap-1">
+               <div className="w-1.5 h-1.5 bg-neon-blue rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+               <div className="w-1.5 h-1.5 bg-neon-blue rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+               <div className="w-1.5 h-1.5 bg-neon-blue rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+             </div>
+             <span className="font-medium">
+               {Array.from(typingUsers).join(', ')} is typing...
+             </span>
+           </div>
+        </div>
+      )}
+
       {/* Input */}
       <div className="p-4 pb-6 relative">
         {showEmoji && (
@@ -720,7 +778,7 @@ const ChatArea = ({ user, socket, activeChannel }) => {
 
           <input 
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={handleInputChange}
             placeholder={`Message #${activeChannel.name}`}
             className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-gray-500 text-lg"
           />

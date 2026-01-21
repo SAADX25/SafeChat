@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../db/database');
+const db = require('../db/database.js');
 
 const SECRET_KEY = 'super_secret_key_change_this'; // في الإنتاج يوضع في .env
 
