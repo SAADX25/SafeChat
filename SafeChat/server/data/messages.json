@@ -19,59 +19,5 @@
     "channelId": "ff94e873-69ac-4c06-ab7c-b11829f0354a",
     "type": "text",
     "reactions": {}
-  },
-  {
-    "_id": "ff052129-1df1-4c49-9a41-48c714dccd9d",
-    "createdAt": "2026-01-20T17:23:41.713Z",
-    "text": "FK YOU ALL P",
-    "userId": "6705bbb9-9caa-407a-a262-67f481ce63c7",
-    "username": "SAAD",
-    "avatar": "http://localhost:5000/uploads/1768927440961-wallpaperflare.com_wallpaper (5).jpg",
-    "channelId": "8aac66de-2ff3-4fba-bbdf-def01475e0ba",
-    "color": "#8f1dc3",
-    "type": "text",
-    "reactions": {}
-  },
-  {
-    "_id": "008afb5a-c85c-4c9e-9e80-f18884a8935f",
-    "createdAt": "2026-01-20T17:23:47.677Z",
-    "text": "",
-    "fileUrl": "http://localhost:5000/uploads/1768929827669-(12) (2810).mp3",
-    "fileName": "(12) (2810).mp3",
-    "userId": "6705bbb9-9caa-407a-a262-67f481ce63c7",
-    "username": "SAAD",
-    "avatar": "http://localhost:5000/uploads/1768927440961-wallpaperflare.com_wallpaper (5).jpg",
-    "channelId": "8aac66de-2ff3-4fba-bbdf-def01475e0ba",
-    "color": "#8f1dc3",
-    "type": "file",
-    "reactions": {}
-  },
-  {
-    "_id": "b96acf2a-c1eb-4cb8-9973-f0078eb45bb5",
-    "createdAt": "2026-01-20T17:23:55.766Z",
-    "text": "",
-    "fileUrl": "http://localhost:5000/uploads/1768929833797-lost file name (5524).mp4",
-    "fileName": "lost file name (5524).mp4",
-    "userId": "6705bbb9-9caa-407a-a262-67f481ce63c7",
-    "username": "SAAD",
-    "avatar": "http://localhost:5000/uploads/1768927440961-wallpaperflare.com_wallpaper (5).jpg",
-    "channelId": "8aac66de-2ff3-4fba-bbdf-def01475e0ba",
-    "color": "#8f1dc3",
-    "type": "file",
-    "reactions": {}
-  },
-  {
-    "_id": "d4500d30-175f-4b8d-9acb-9a6bf2ec9f37",
-    "createdAt": "2026-01-20T17:24:06.198Z",
-    "text": "",
-    "fileUrl": "http://localhost:5000/uploads/1768929846178-lost file name (2250).png",
-    "fileName": "lost file name (2250).png",
-    "userId": "6705bbb9-9caa-407a-a262-67f481ce63c7",
-    "username": "SAAD",
-    "avatar": "http://localhost:5000/uploads/1768927440961-wallpaperflare.com_wallpaper (5).jpg",
-    "channelId": "8aac66de-2ff3-4fba-bbdf-def01475e0ba",
-    "color": "#8f1dc3",
-    "type": "image",
-    "reactions": {}
   }
 ]
