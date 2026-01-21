@@ -299,7 +299,7 @@ const ProfileSettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
   );
 };
 
-const ChannelList = ({ user, channels, activeChannel, onSelectChannel, onCreateChannel, onOpenSettings, onDeleteChannel }) => {
+const ChannelList = ({ user, channels, activeChannel, onSelectChannel, onCreateChannel, onOpenSettings, onDeleteChannel, onLogout }) => {
   return (
     <div className="w-64 glass-panel h-full flex flex-col border-r-0 z-10">
       <div className="p-4 font-bold text-lg flex items-center gap-2">
@@ -366,8 +366,16 @@ const ChannelList = ({ user, channels, activeChannel, onSelectChannel, onCreateC
           <button 
             onClick={onOpenSettings}
             className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+            title="Settings"
           >
             <Settings size={16} />
+          </button>
+          <button 
+            onClick={onLogout}
+            className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
+            title="Logout"
+          >
+            <LogOut size={16} />
           </button>
         </div>
       </div>
@@ -841,6 +849,15 @@ const App = () => {
     setUser({ ...user, ...updatedUser });
   };
 
+  const handleLogout = () => {
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+      socket.disconnect();
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-black">
       <div className="w-10 h-10 border-4 border-neon-blue border-t-transparent rounded-full animate-spin"></div>
@@ -859,6 +876,7 @@ const App = () => {
         onCreateChannel={() => setIsCreateChannelOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onDeleteChannel={handleDeleteChannel}
+        onLogout={handleLogout}
       />
       <ChatArea user={user} socket={socket} activeChannel={activeChannel} />
       

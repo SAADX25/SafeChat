@@ -36,7 +36,8 @@ exports.register = async (req, res) => {
     res.json({ user: userWithoutPass, token });
     
   } catch (error) {
-    res.status(500).json({ message: 'خطأ في الخادم' });
+    console.error('Registration Error:', error);
+    res.status(500).json({ message: error.message || 'خطأ في الخادم' });
   }
 };
 
@@ -59,7 +60,8 @@ exports.login = async (req, res) => {
     
     res.json({ user: userWithoutPass, token });
   } catch (error) {
-    res.status(500).json({ message: 'خطأ في الخادم' });
+    console.error('Login Error:', error);
+    res.status(500).json({ message: error.message || 'خطأ في الخادم' });
   }
 };
 

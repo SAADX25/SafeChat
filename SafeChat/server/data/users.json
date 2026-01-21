@@ -1,13 +1,12 @@
 [
   {
-    "_id": "6705bbb9-9caa-407a-a262-67f481ce63c7",
-    "createdAt": "2026-01-20T16:11:24.587Z",
+    "_id": "6e289094-87c4-47f1-aeaf-657ae1d9d176",
+    "createdAt": "2026-01-21T05:50:09.676Z",
     "username": "SAAD",
     "email": "haddad.hgcr@gmail.com",
-    "password": "$2a$10$34GuKqxWsNm1fFyKSPBedOkzJB3TWAxj0C976bf4umKF0yVg5lOuS",
-    "avatar": "http://localhost:5000/uploads/1768927440961-wallpaperflare.com_wallpaper (5).jpg",
+    "password": "$2a$10$7/3uDNcGZK/RRXkt6H4B/OfoG5Qf5pevSbVRvwLwptnDtaZBGplXe",
+    "avatar": "https://api.dicebear.com/7.x/shapes/svg?seed=SAAD",
     "theme": "neon",
-    "status": "online",
-    "color": "#8f1dc3"
+    "status": "online"
   }
 ]

@@ -12,7 +12,16 @@ class JSONDB {
   }
 
   read() {
-    return JSON.parse(fs.readFileSync(this.file, 'utf8'));
+    try {
+      const content = fs.readFileSync(this.file, 'utf8');
+      if (!content || content.trim() === '') {
+        return [];
+      }
+      return JSON.parse(content);
+    } catch (error) {
+      console.error(`Error reading database file ${this.file}:`, error);
+      return [];
+    }
   }
 
   write(data) {
