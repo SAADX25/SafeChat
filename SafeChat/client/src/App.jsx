@@ -191,6 +191,8 @@ const ProfileSettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
   const [username, setUsername] = useState(user.username);
   const [color, setColor] = useState(user.color || '#ffffff');
   const [avatar, setAvatar] = useState(user.avatar);
+  const [isDiamond, setIsDiamond] = useState(user.isDiamond || false);
+  const [customGradient, setCustomGradient] = useState(user.customGradient || ['#ff0000', '#00ff00', '#0000ff']);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -219,7 +221,9 @@ const ProfileSettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
       const res = await axios.post('/api/user/update', {
         username,
         color,
-        avatar
+        avatar,
+        isDiamond,
+        customGradient
       });
       onUpdate(res.data);
       onClose();
@@ -229,6 +233,21 @@ const ProfileSettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const PRESETS = {
+    rainbow: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#8f00ff'],
+    fire: ['#ff0000', '#ff4500', '#ff8c00', '#ffd700'],
+    ice: ['#00ffff', '#00bfff', '#1e90ff', '#00008b'],
+    diamond: ['#e0ffff', '#b0e0e6', '#87cefa', '#ffffff'],
+    gold: ['#ffd700', '#ffa500', '#daa520', '#f0e68c'],
+    matrix: ['#00ff00', '#008000', '#006400', '#adff2f']
+  };
+
+  const applyPreset = (e, presetName) => {
+    e.preventDefault(); // Prevent form submission or bubbling
+    console.log('Applying preset:', presetName); // Debugging
+    setCustomGradient([...PRESETS[presetName]]);
   };
 
   if (!isOpen) return null;
@@ -241,13 +260,12 @@ const ProfileSettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
           <div className="relative group">
             <img 
               src={avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${username}`} 
-              className="w-24 h-24 rounded-full border-2 border-neon-blue object-cover" 
+              className={`w-24 h-24 rounded-full border-2 object-cover ${isDiamond ? 'border-transparent neon-border animate-pulse' : 'border-neon-blue'}`}
               alt="Profile" 
             />
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            >
+              className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
               <ImageIcon className="text-white" />
             </div>
             <input 
@@ -271,8 +289,72 @@ const ProfileSettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
           />
         </div>
 
-        {/* Color Section */}
-        <div>
+        {/* Admin Only: RGB Mode Toggle */}
+        {user.isAdmin && (
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl border border-white/10">
+            <div>
+              <h4 className="font-bold text-white flex items-center gap-2">
+                RGB Gamer Mode 
+                <span className="text-[10px] bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-2 py-0.5 rounded font-bold">ADMIN</span>
+              </h4>
+              <p className="text-xs text-gray-400">Enable exclusive effects</p>
+            </div>
+            <button 
+              onClick={() => setIsDiamond(!isDiamond)}
+              className={`w-12 h-6 rounded-full transition-all duration-300 relative ${isDiamond ? 'bg-green-500' : 'bg-gray-600'}`}
+            >
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isDiamond ? 'left-7' : 'left-1'}`} />
+            </button>
+          </div>
+        )}
+
+        {/* Admin Custom Gradient Section (Presets) */}
+        {user.isAdmin && isDiamond && (
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <label className="text-sm font-bold text-neon-blue block mb-3">Select Effect Style</label>
+            
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {Object.keys(PRESETS).map(name => (
+                <button
+                  key={name}
+                  type="button" // Important: Prevent form submission
+                  onClick={(e) => applyPreset(e, name)}
+                  className="px-3 py-2 rounded-lg bg-black/40 hover:bg-white/20 border border-white/10 transition-all text-xs font-bold uppercase tracking-wider cursor-pointer active:scale-95"
+                  style={{
+                    borderColor: customGradient.join(',') === PRESETS[name].join(',') ? '#fff' : 'rgba(255,255,255,0.1)',
+                    boxShadow: customGradient.join(',') === PRESETS[name].join(',') ? '0 0 10px rgba(255,255,255,0.2)' : 'none'
+                  }}
+                >
+                  <span style={{
+                    background: `linear-gradient(to right, ${PRESETS[name].join(', ')})`,
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent'
+                  }}>
+                    {name}
+                  </span>
+                </button>
+              ))}
+            </div>
+            
+            <div 
+               className="h-12 w-full rounded-lg bg-black/40 flex items-center justify-center font-bold text-xl border border-white/10"
+               style={{ 
+                 background: `linear-gradient(to right, ${customGradient.join(', ')})`,
+                 WebkitBackgroundClip: 'text',
+                 backgroundClip: 'text',
+                 color: 'transparent',
+                 backgroundSize: '200% auto',
+                 animation: 'rainbow 3s linear infinite'
+               }}
+            >
+              {username}
+            </div>
+          </div>
+        )}
+
+        {/* Color Section (Disabled if RGB Mode is on) */}
+        <div className={isDiamond ? 'opacity-50 pointer-events-none hidden' : ''}>
           <label className="block text-sm font-medium text-gray-400 mb-2">Username Color (RGB)</label>
           <div className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/10">
             <input 
@@ -297,6 +379,24 @@ const ProfileSettingsModal = ({ isOpen, onClose, user, onUpdate }) => {
       </div>
     </Modal>
   );
+};
+
+const getRainbowStyle = (userOrMsg) => {
+  if (!userOrMsg.isDiamond) return { color: userOrMsg.color || '#fff' };
+  
+  if (userOrMsg.customGradient && userOrMsg.customGradient.length > 0) {
+    return {
+      backgroundImage: `linear-gradient(to right, ${userOrMsg.customGradient.join(', ')})`,
+      WebkitBackgroundClip: 'text',
+      backgroundClip: 'text',
+      color: 'transparent',
+      backgroundSize: '200% auto',
+      animation: 'rainbow 3s linear infinite',
+      display: 'inline-block' // Important for background-clip to work correctly
+    };
+  }
+  
+  return {}; // Will use default .rainbow-text class
 };
 
 const ChannelList = ({ user, channels, activeChannel, onSelectChannel, onCreateChannel, onOpenSettings, onDeleteChannel, onLogout }) => {
@@ -359,7 +459,12 @@ const ChannelList = ({ user, channels, activeChannel, onSelectChannel, onCreateC
           <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></div>
         </div>
         <div className="flex-1 overflow-hidden">
-          <div className="font-bold text-sm truncate" style={{ color: user.color }}>{user.username}</div>
+          <div 
+            className={`font-bold text-sm truncate ${user.isDiamond && !user.customGradient ? 'rainbow-text' : ''}`} 
+            style={getRainbowStyle(user)}
+          >
+            {user.username}
+          </div>
           <div className="text-xs text-gray-500 truncate">Online</div>
         </div>
         <div className="flex gap-1">
@@ -657,7 +762,10 @@ const ChatArea = ({ user, socket, activeChannel }) => {
                 <div className="flex-1 max-w-2xl">
                   <div className="flex items-baseline gap-2 justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold hover:underline cursor-pointer" style={{ color: msg.color || '#fff' }}>
+                      <span 
+                        className={`font-bold hover:underline cursor-pointer ${msg.isDiamond && !msg.customGradient ? 'rainbow-text' : ''}`} 
+                        style={getRainbowStyle(msg)}
+                      >
                         {msg.username}
                       </span>
                       <span className="text-xs text-gray-500">

@@ -11,13 +11,22 @@
     "color": "#358492"
   },
   {
-    "_id": "0953b07d-7aec-4c52-b1d1-45f8ffdb291e",
-    "createdAt": "2026-01-21T16:52:52.947Z",
-    "username": "SAADX",
-    "email": "Rtz.haddx@erzi.me",
-    "password": "$2a$10$7aJPKMBQrbq.41OpIcXTDeUDLFVlgq3fFNrdA03b.40CsNs2TNdCe",
-    "avatar": "https://api.dicebear.com/7.x/shapes/svg?seed=SAADX",
+    "_id": "a9ae489c-4509-476c-a444-f3f791d92ae4",
+    "createdAt": "2026-01-21T17:06:27.164Z",
+    "username": "SAADXR",
+    "email": "admin@safechat.com",
+    "password": "$2a$10$Wbp/jRQtQLSzDBQ1KGm/1uvd07q0n0TYFuDRvESwpMcbRxm6eqmdi",
+    "avatar": "http://localhost:5000/uploads/1769030012934-wallpaperflare.com_wallpaper (1).jpg",
     "theme": "neon",
-    "status": "online"
+    "status": "online",
+    "isAdmin": true,
+    "isDiamond": true,
+    "customGradient": [
+      "#00ffff",
+      "#00bfff",
+      "#1e90ff",
+      "#00008b"
+    ],
+    "color": "#ce2c2c"
   }
 ]

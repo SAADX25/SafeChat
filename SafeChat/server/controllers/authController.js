@@ -72,7 +72,7 @@ exports.getMe = (req, res) => {
 
 exports.updateProfile = (req, res) => {
   try {
-    const { username, color, isDiamond, avatar } = req.body;
+    const { username, color, isDiamond, avatar, customGradient } = req.body;
     const userId = req.user._id;
 
     const updates = {};
@@ -80,6 +80,7 @@ exports.updateProfile = (req, res) => {
     if (color) updates.color = color;
     if (isDiamond !== undefined) updates.isDiamond = isDiamond;
     if (avatar) updates.avatar = avatar;
+    if (customGradient) updates.customGradient = customGradient;
 
     const updatedUser = db.users.update(userId, updates);
 

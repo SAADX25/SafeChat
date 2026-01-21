@@ -154,6 +154,7 @@ io.on('connection', (socket) => {
       channelId: data.channelId, // Save channel ID
       color: currentUser.color,
       isDiamond: currentUser.isDiamond,
+      customGradient: currentUser.customGradient, // Save custom gradient
       type: data.type || 'text',
       reactions: {}
     });

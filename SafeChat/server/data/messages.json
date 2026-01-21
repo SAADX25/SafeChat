@@ -19,5 +19,26 @@
     "channelId": "ff94e873-69ac-4c06-ab7c-b11829f0354a",
     "type": "text",
     "reactions": {}
+  },
+  {
+    "_id": "c02521a8-a57a-467c-8e52-da010067cba8",
+    "createdAt": "2026-01-21T21:14:43.913Z",
+    "text": "",
+    "fileUrl": "http://localhost:5000/uploads/1769030083901-wallpaperflare.com_wallpaper (5).jpg",
+    "fileName": "wallpaperflare.com_wallpaper (5).jpg",
+    "userId": "a9ae489c-4509-476c-a444-f3f791d92ae4",
+    "username": "SAADX",
+    "avatar": "http://localhost:5000/uploads/1769030012934-wallpaperflare.com_wallpaper (1).jpg",
+    "channelId": "8aac66de-2ff3-4fba-bbdf-def01475e0ba",
+    "color": "#ce2c2c",
+    "isDiamond": true,
+    "customGradient": [
+      "#00ffff",
+      "#00bfff",
+      "#1e90ff",
+      "#00008b"
+    ],
+    "type": "image",
+    "reactions": {}
   }
 ]
