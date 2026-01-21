@@ -5,8 +5,9 @@
     "username": "SAAD",
     "email": "haddad.hgcr@gmail.com",
     "password": "$2a$10$7/3uDNcGZK/RRXkt6H4B/OfoG5Qf5pevSbVRvwLwptnDtaZBGplXe",
-    "avatar": "https://api.dicebear.com/7.x/shapes/svg?seed=SAAD",
+    "avatar": "http://localhost:5000/uploads/1768976171671-lost file name (2277).jpg",
     "theme": "neon",
-    "status": "online"
+    "status": "online",
+    "color": "#358492"
   }
 ]
