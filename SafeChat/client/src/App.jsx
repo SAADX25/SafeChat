@@ -7,7 +7,7 @@ const EmojiPicker = React.lazy(() => import('emoji-picker-react'));
 import { 
   Send, Settings, LogOut, Hash, Plus, User, Lock, Mail, Server, 
   MessageSquare, ChevronRight, Menu, Image as ImageIcon, Film, File, 
-  Smile, Trash2, X, Mic, Music, StopCircle
+  Smile, Trash2, X, Mic, Music, StopCircle, Edit2, Reply, Search
 } from 'lucide-react';
 
 // Error Boundary Component to catch crashes
@@ -526,9 +526,16 @@ const AttachmentMenu = ({ onSelect, onClose }) => {
 const ChatArea = ({ user, socket, activeChannel }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
   const [showEmoji, setShowEmoji] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  
+  // Search State
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const typingTimeoutRef = useRef(null);
   const scrollRef = useRef(null);
@@ -564,6 +571,10 @@ const ChatArea = ({ user, socket, activeChannel }) => {
       setMessages(prev => prev.filter(m => m._id !== msgId));
     };
 
+    const handleMessageUpdated = (updatedMsg) => {
+      setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
+    };
+
     const handleUserTyping = ({ username, channelId }) => {
       if (channelId === activeChannel?._id && username !== user.username) {
         setTypingUsers(prev => new Set(prev).add(username));
@@ -583,6 +594,7 @@ const ChatArea = ({ user, socket, activeChannel }) => {
 
     socket.on('receive_message', handleReceiveMessage);
     socket.on('message_deleted', handleMessageDeleted);
+    socket.on('message_updated', handleMessageUpdated);
     socket.on('user_typing', handleUserTyping);
     socket.on('user_stop_typing', handleUserStopTyping);
     socket.on('system_message', (msg) => {
@@ -592,6 +604,7 @@ const ChatArea = ({ user, socket, activeChannel }) => {
     return () => {
       socket.off('receive_message', handleReceiveMessage);
       socket.off('message_deleted', handleMessageDeleted);
+      socket.off('message_updated', handleMessageUpdated);
       socket.off('user_typing', handleUserTyping);
       socket.off('user_stop_typing', handleUserStopTyping);
       socket.off('system_message');
@@ -619,12 +632,44 @@ const ChatArea = ({ user, socket, activeChannel }) => {
     socket.emit('stop_typing', { channelId: activeChannel._id });
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
-    socket.emit('send_message', { 
-      text: input,
-      channelId: activeChannel._id 
-    });
+    if (editingMessageId) {
+      socket.emit('edit_message', {
+        msgId: editingMessageId,
+        newText: input
+      });
+      setEditingMessageId(null);
+    } else {
+      socket.emit('send_message', { 
+        text: input,
+        channelId: activeChannel._id,
+        replyTo: replyingTo
+      });
+      setReplyingTo(null);
+    }
     setInput('');
     setShowEmoji(false);
+  };
+
+  const startEditing = (msg) => {
+    setInput(msg.text);
+    setEditingMessageId(msg._id);
+    setReplyingTo(null); // Cancel reply if editing
+    fileInputRef.current?.focus();
+  };
+
+  const cancelEditing = () => {
+    setInput('');
+    setEditingMessageId(null);
+  };
+
+  const startReplying = (msg) => {
+    setReplyingTo(msg);
+    setEditingMessageId(null); // Cancel edit if replying
+    fileInputRef.current?.focus();
+  };
+
+  const cancelReplying = () => {
+    setReplyingTo(null);
   };
 
   const handleFileSelect = (type) => {
@@ -718,6 +763,24 @@ const ChatArea = ({ user, socket, activeChannel }) => {
     setInput(prev => prev + emojiData.emoji);
   };
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    try {
+      const res = await axios.get(`/api/search?q=${searchQuery}&channelId=${activeChannel._id}`);
+      setSearchResults(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const clearSearch = () => {
+    setIsSearching(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   if (!activeChannel) return (
     <div className="flex-1 flex items-center justify-center text-gray-500">
       Select a channel to start chatting
@@ -727,20 +790,42 @@ const ChatArea = ({ user, socket, activeChannel }) => {
   return (
     <div className="flex-1 flex flex-col h-full bg-black/20 relative">
       {/* Header */}
-      <div className="h-14 flex items-center px-4 justify-between backdrop-blur-sm sticky top-0 z-10">
+      <div className="h-14 flex items-center px-4 justify-between backdrop-blur-sm sticky top-0 z-10 border-b border-white/5">
         <div className="flex items-center gap-2">
           <Hash size={20} className="text-gray-400" />
           <span className="font-bold text-white">{activeChannel.name}</span>
         </div>
-        <div className="flex items-center gap-4 text-gray-400">
-           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-           <span className="text-xs">Live</span>
-        </div>
+        
+        {isSearching ? (
+          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4 relative">
+             <input 
+               autoFocus
+               value={searchQuery}
+               onChange={e => setSearchQuery(e.target.value)}
+               placeholder="Search messages..."
+               className="w-full bg-black/40 border border-white/10 rounded-lg py-1.5 pl-3 pr-8 text-sm text-white focus:outline-none focus:border-neon-blue"
+             />
+             <button type="button" onClick={clearSearch} className="absolute right-2 top-1.5 text-gray-400 hover:text-white">
+               <X size={14} />
+             </button>
+          </form>
+        ) : (
+          <div className="flex items-center gap-4 text-gray-400">
+             <button onClick={() => setIsSearching(true)} className="hover:text-white transition-colors">
+               <Search size={18} />
+             </button>
+             <div className="w-px h-4 bg-white/10"></div>
+             <div className="flex items-center gap-2">
+               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+               <span className="text-xs">Live</span>
+             </div>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, i) => (
+        {(isSearching ? searchResults : messages).map((msg, i) => (
           <motion.div 
             key={msg._id || i}
             initial={{ opacity: 0, y: 10 }}
@@ -773,17 +858,50 @@ const ChatArea = ({ user, socket, activeChannel }) => {
                       </span>
                     </div>
                     {user._id === msg.userId && (
-                      <button 
-                        onClick={() => deleteMessage(msg._id)}
-                        className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                          onClick={() => startReplying(msg)}
+                          className="text-gray-600 hover:text-white transition-all p-1"
+                          title="Reply"
+                        >
+                          <Reply size={14} />
+                        </button>
+                        <button 
+                          onClick={() => startEditing(msg)}
+                          className="text-gray-600 hover:text-neon-blue transition-all p-1"
+                          title="Edit"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button 
+                          onClick={() => deleteMessage(msg._id)}
+                          className="text-gray-600 hover:text-red-500 transition-all p-1"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    )}
+                    {user._id !== msg.userId && (
+                       <div className="opacity-0 group-hover:opacity-100 transition-all">
+                          <button 
+                            onClick={() => startReplying(msg)}
+                            className="text-gray-600 hover:text-white transition-all p-1"
+                            title="Reply"
+                          >
+                            <Reply size={14} />
+                          </button>
+                       </div>
                     )}
                   </div>
                   
                   <div className="mt-1 text-gray-300 leading-relaxed">
-                    {msg.text && <p>{msg.text}</p>}
+                    {msg.text && (
+                      <p>
+                        {msg.text}
+                        {msg.isEdited && <span className="text-[10px] text-gray-500 ml-2">(edited)</span>}
+                      </p>
+                    )}
                     
                     {msg.fileUrl && (
                       <div className="mt-2">
@@ -846,6 +964,28 @@ const ChatArea = ({ user, socket, activeChannel }) => {
 
       {/* Input */}
       <div className="p-4 pb-6 relative">
+        {editingMessageId && (
+          <div className="flex items-center justify-between bg-black/40 backdrop-blur-md rounded-t-2xl px-4 py-2 border-x border-t border-white/5 -mb-2 relative z-10">
+            <span className="text-xs text-neon-blue font-bold">Editing Message</span>
+            <button onClick={cancelEditing} className="text-gray-400 hover:text-white">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {replyingTo && (
+          <div className="flex items-center justify-between bg-black/40 backdrop-blur-md rounded-t-2xl px-4 py-2 border-x border-t border-white/5 -mb-2 relative z-10">
+            <div className="flex items-center gap-2 overflow-hidden">
+               <Reply size={14} className="text-gray-400 flex-shrink-0" />
+               <span className="text-xs text-gray-400">Replying to <span className="text-white font-bold">{replyingTo.username}</span></span>
+               <span className="text-xs text-gray-500 truncate max-w-[200px]">{replyingTo.text || 'Attachment'}</span>
+            </div>
+            <button onClick={cancelReplying} className="text-gray-400 hover:text-white">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         {showEmoji && (
           <div className="absolute bottom-20 left-4 z-50">
             <ErrorBoundary>
@@ -912,10 +1052,54 @@ const ChatArea = ({ user, socket, activeChannel }) => {
   );
 };
 
+const UserList = ({ users, onlineUserIds }) => {
+  const uniqueUsers = users.filter((user, index, self) =>
+    index === self.findIndex(u => u._id === user._id)
+  );
+  return (
+    <div className="w-64 glass-panel h-full flex flex-col border-l border-white/5 hidden lg:flex bg-black/20">
+      <div className="p-4 font-bold text-lg flex items-center gap-2 border-b border-white/5">
+        <User size={18} className="text-neon-pink" />
+        <span>Online - {onlineUserIds.size}</span>
+      </div>
+      
+      <div className="flex-1 p-3 overflow-y-auto space-y-2">
+        {uniqueUsers.map(user => {
+          const isOnline = onlineUserIds.has(user._id);
+          return (
+          <div key={user._id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors group">
+            <div className="relative">
+              <img 
+                src={user.avatar} 
+                alt="" 
+                className={`w-8 h-8 rounded-full border object-cover ${user.isDiamond ? 'border-transparent neon-border' : 'border-white/10'}`} 
+              />
+              <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-black ${isOnline ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+            </div>
+            <div className="overflow-hidden">
+              <div 
+                className={`font-bold text-sm truncate ${user.isDiamond && !user.customGradient ? 'rainbow-text' : ''}`}
+                style={getRainbowStyle(user)}
+              >
+                {user.username}
+              </div>
+              <div className={`text-[10px] truncate ${isOnline ? 'text-green-500 group-hover:text-green-400' : 'text-gray-500 group-hover:text-gray-400'}`}>
+                {isOnline ? 'Online' : 'Offline'}
+              </div>
+            </div>
+          </div>
+        )})}
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [user, setUser] = useState(null);
   const [channels, setChannels] = useState([]);
   const [activeChannel, setActiveChannel] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [onlineUserIds, setOnlineUserIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -944,6 +1128,17 @@ const App = () => {
           if (res.data.length > 0) setActiveChannel(res.data[0]);
         })
         .catch(console.error);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      axios.get('/api/users')
+        .then(res => setAllUsers(res.data))
+        .catch(console.error);
+    } else {
+      setAllUsers([]);
+      setOnlineUserIds(new Set());
     }
   }, [user]);
 
@@ -977,13 +1172,19 @@ const App = () => {
         }
       };
 
+      const handleOnlineUsers = (users) => {
+        setOnlineUserIds(new Set(users.map(u => u._id)));
+      };
+
       socket.on('channel_created', handleChannelCreated);
       socket.on('channel_deleted', handleChannelDeleted);
+      socket.on('online_users', handleOnlineUsers);
 
       return () => {
         socket.off('connect', handleJoin);
         socket.off('channel_created', handleChannelCreated);
         socket.off('channel_deleted', handleChannelDeleted);
+        socket.off('online_users', handleOnlineUsers);
       };
     }
   }, [user, activeChannel]);
@@ -1045,6 +1246,7 @@ const App = () => {
         onLogout={handleLogout}
       />
       <ChatArea user={user} socket={socket} activeChannel={activeChannel} />
+      <UserList users={allUsers} onlineUserIds={onlineUserIds} />
       
       <Modal 
         isOpen={isCreateChannelOpen} 

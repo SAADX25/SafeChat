@@ -7,8 +7,14 @@
     "password": "$2a$10$7/3uDNcGZK/RRXkt6H4B/OfoG5Qf5pevSbVRvwLwptnDtaZBGplXe",
     "avatar": "http://localhost:5000/uploads/1769014326858-lost file name (2245).png",
     "theme": "neon",
-    "status": "online",
-    "color": "#358492"
+    "status": "offline",
+    "color": "#084be7",
+    "isDiamond": false,
+    "customGradient": [
+      "#ff0000",
+      "#00ff00",
+      "#0000ff"
+    ]
   },
   {
     "_id": "a9ae489c-4509-476c-a444-f3f791d92ae4",

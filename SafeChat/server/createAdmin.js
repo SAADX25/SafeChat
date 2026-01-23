@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const db = require('./server/db/database.js');
+const db = require('./db/database.js');
 const path = require('path');
 const fs = require('fs');
 
